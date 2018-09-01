@@ -11,7 +11,7 @@ public class P07BullsAndCows {
         do{
             System.out.println("Your guess(Should be four digits number without matching digits): ");
             guess = sc.nextInt();
-        }while(guess < 1023 || guess > 9876);
+        }while(isValidNumber(guess));
         while(guess != number){
             loop();
         }
@@ -45,6 +45,20 @@ public class P07BullsAndCows {
         Random r = new Random();
         return r.nextInt((9 - 0) + 1) + 0;
 
+    }
+
+    public static boolean isValidNumber(int num){
+        if(num >= 1023 && num <= 9876){
+            String numStr = "" + num;
+            if(numStr.charAt(0) == numStr.charAt(1) || numStr.charAt(0) == numStr.charAt(2) || numStr.charAt(0) == numStr.charAt(3)
+            || numStr.charAt(1) == numStr.charAt(2) || numStr.charAt(1) == numStr.charAt(3) || numStr.charAt(2) == numStr.charAt(3)){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
     }
 
     public static void loop(){

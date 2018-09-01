@@ -17,11 +17,15 @@ public class P03Plato {
             }else{
                 if(count > max){
                     max = count;
-                    count = 1;
                 }
+                count = 1;
             }
         }
-        System.out.println(max);
+        if(max > count){
+            System.out.println(max);
+        }else {
+            System.out.println(count);
+        }
     }
 
 }
