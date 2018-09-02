@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -11,6 +12,7 @@ public class P07BullsAndCows {
         int number = generate4DigitsNumberWithoutRepeatingDigits();
         int guess = 0;
         int tries = 0;
+        ArrayList<Integer> bullsAndCows = new ArrayList<>();
         do{
             System.out.println("Your guess(Should be four digits number without matching digits): ");
             guess = sc.nextInt();
@@ -19,7 +21,8 @@ public class P07BullsAndCows {
         if(guess == number){
             System.out.println("Congratulations, you won from the first time!");
         }else{
-            System.out.println("Sorry, try again!");
+            bullsAndCows = howManyCowsAndBulls(guess,number);
+            System.out.printf("%d Bulls and %d Cows, Sorry try again!\n",bullsAndCows.get(0),bullsAndCows.get(1));
             tries+=2;
             while(true){
                 if(guess == 112){
@@ -27,14 +30,17 @@ public class P07BullsAndCows {
                     break;
                 }
                 do{
-                    System.out.printf("Your guess(Try %d)",tries);
+                    System.out.printf("Your guess(Try %d)\n",tries);
                     guess = sc.nextInt();
                 }while(isValidNumber(guess));
 
                 if(guess == number){
-                    System.out.printf("Congratulations, you won from the %d time!\n",tries);
+                    System.out.printf("Four Bulls - Congratulations, you won from the %d time!\n",tries);
                     break;
                 }else{
+
+                    bullsAndCows = howManyCowsAndBulls(guess,number);
+                    System.out.printf("%d Bulls and %d Cows\n",bullsAndCows.get(0),bullsAndCows.get(1));
                     tries++;
                 }
             }
@@ -84,7 +90,7 @@ public class P07BullsAndCows {
     }
 
     public static boolean isValidNumber(int num){
-        if(num != 112){
+        if(num != 112){ //112 is the number for a surrender
             if(num >= 1023 && num <= 9876){
                 String numStr = "" + num;
                 if(numStr.charAt(0) == numStr.charAt(1) || numStr.charAt(0) == numStr.charAt(2) || numStr.charAt(0) == numStr.charAt(3)
@@ -100,6 +106,30 @@ public class P07BullsAndCows {
             return true;
         }
 
+    }
+
+    public static ArrayList<Integer> howManyCowsAndBulls(int guess,int number){
+        String guessStr = "" + guess;
+        String numStr = "" + number;
+        int bulls = 0;
+        int cows = 0;
+        for(int i = 0;i < guessStr.length();i++){
+            if(guessStr.charAt(i) == numStr.charAt(i)){
+                bulls++;
+            }
+        }
+
+        for(int i = 0;i < guessStr.length();i++){
+            for(int j = 0; j < guessStr.length();j++){
+                if(guessStr.charAt(i) == numStr.charAt(i) && i != j){
+                    cows++;
+                }
+            }
+        }
+        ArrayList<Integer> res = new ArrayList<>();
+        res.add(bulls);
+        res.add(cows);
+        return res;
     }
 
 }
