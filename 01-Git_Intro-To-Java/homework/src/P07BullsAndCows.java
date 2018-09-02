@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class P07BullsAndCows {
 
 
-    public static void main(String [] args){
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
         printIntro();
@@ -15,7 +15,7 @@ public class P07BullsAndCows {
 
     }
 
-    public static void printIntro(){
+    public static void printIntro() {
         System.out.println("         Welcome to Bulls And Cows!         ");
 
         System.out.println(
@@ -40,55 +40,55 @@ public class P07BullsAndCows {
     }
 
 
-    public static void playGame(){
-        Random gen= new Random();
-        int num= 0;
-        while(hasDupes(num= (gen.nextInt(9000) + 1000)));
-        String numStr = num +"";
+    public static void playGame() {
+        Random gen = new Random();
+        int num = 0;
+        while (hasDupes(num = (gen.nextInt(9000) + 1000))) ;
+        String numStr = num + "";
         boolean guessed = false;
         Scanner input = new Scanner(System.in);
         int guesses = 0;
-        do{
+        do {
             int bulls = 0;
             int cows = 0;
             System.out.print("Guess a 4-digit number with no duplicate digits: ");
             int guess;
-            try{
+            try {
                 guess = input.nextInt();
-                if(guess == 112){
+                if (guess == 112) {
                     System.out.println("You have surrendered, Game Over!");
                     System.exit(0);
                 }
-                if(hasDupes(guess) || guess < 1000 || guess > 9999) continue;
-            }catch(InputMismatchException e){
+                if (hasDupes(guess) || guess < 1000 || guess > 9999) continue;
+            } catch (InputMismatchException e) {
                 continue;
             }
             guesses++;
             String guessStr = guess + "";
-            for(int i= 0;i < 4;i++){
-                if(guessStr.charAt(i) == numStr.charAt(i)){
+            for (int i = 0; i < 4; i++) {
+                if (guessStr.charAt(i) == numStr.charAt(i)) {
                     bulls++;
-                }else if(numStr.contains(guessStr.charAt(i)+"")){
+                } else if (numStr.contains(guessStr.charAt(i) + "")) {
                     cows++;
                 }
             }
-            if(bulls == 4){
+            if (bulls == 4) {
                 guessed = true;
-            }else{
-                System.out.println(cows+" Cows and "+bulls+" Bulls.");
+            } else {
+                System.out.println(cows + " Cows and " + bulls + " Bulls.");
             }
-        }while(!guessed);
-        System.out.println("You won after "+guesses+" guesses!");
+        } while (!guessed);
+        System.out.println("You won after " + guesses + " guesses!");
 
     }
 
 
-    public static boolean hasDupes(int num){
+    public static boolean hasDupes(int num) {
         boolean[] digs = new boolean[10];
-        while(num > 0){
-            if(digs[num%10]) return true;
-            digs[num%10] = true;
-            num/= 10;
+        while (num > 0) {
+            if (digs[num % 10]) return true;
+            digs[num % 10] = true;
+            num /= 10;
         }
         return false;
     }
