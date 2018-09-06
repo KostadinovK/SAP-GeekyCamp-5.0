@@ -1,0 +1,9 @@
+kosta=master
+loop=infinity
+SegFault=error
+power=metal
+Manowar=Manowarrior
+Mettalica=MasterOfPuppets
+IronMaiden=Trooper
+Helloween=Keeper
+GammaRay=LandOfTheFree
