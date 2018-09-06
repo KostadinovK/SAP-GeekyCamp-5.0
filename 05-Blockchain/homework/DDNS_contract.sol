@@ -11,9 +11,10 @@ contract DDNS {
     uint balance = 100;
     address owner = msg.sender;
     function buyDomain(string domain) public payable { //the 'payable' modifier is needed in order to receive ETH. Read the docs for further info.
+		Domain d = Domain(domain,0,false);
+		require(d.isFree == true && msg.value == 1 ether && msg.sender.balance - 1 ether >= 0);
         owner.transfer(1);
-        balance += 1;
-        domains.push(Domain(domain,0,false));
+        domains.push(d);
         
     }
     
