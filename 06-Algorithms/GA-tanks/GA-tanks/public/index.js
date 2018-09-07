@@ -1,60 +1,5 @@
 'use strict';
 
-function Tank(position) {
-    this.position = position;
-    this.velocity = new Vector(1, 0);
-    this.rotation = degreesToRadians(90);
-    // this.rotation = 0;
-
-    this.width = 50;
-    this.height = 20;
-    this.center = new Vector(this.position.x + this.width/2, this.position.y + this.height/2);
-
-    this.wheelRadius = 5;
-    this.rotationSpeed = 5;
-    this.moveSpeed = 5;
-
-    this.allPositions = [];
-    this.recentMovements = [];
-    this.totalDistance = 0
-
-
-    this.stopped = false;
-
-    this.sensors = {
-        frontLeft: {
-            offsetPos: new Vector(this.width - 25, this.height / 2),
-            position: new Vector(this.width, 15),
-            direction: Vector.zero,
-            length: 1000,
-            hitDistance: Number.POSITIVE_INFINITY
-        },
-        frontRight : {
-            offsetPos: new Vector(this.width, this.height - 15),
-            position: new Vector(this.width, this.height - 15),
-            direction: Vector.zero,
-            length: 1000,
-            hitDistance: Number.POSITIVE_INFINITY
-        },
-        leftSide : {
-            offsetPos: new Vector(this.width - 15, 15),
-            offsetAngle: degreesToRadians(-90),
-            position: new Vector(this.width - 15, 0),
-            direction: Vector.zero,
-            length: 1000,
-            hitDistance: Number.POSITIVE_INFINITY
-        },
-        rightSide: {
-            offsetPos: new Vector(this.width - 15, this.height - 15),
-            position: new Vector(this.width - 15, this.height),
-            offsetAngle: degreesToRadians(90),
-            direction: Vector.zero,
-            length: 1000,
-            hitDistance: Number.POSITIVE_INFINITY
-        }
-    };
-}
-
 let world = {
     AI: false,
     geneticModel: new Genetic(1),
@@ -62,7 +7,8 @@ let world = {
     tank: new Tank(new Vector()),
     mouse: new Vector(0, 0),
 
-    polygons: [[new Vector(10, 10), new Vector(10, 980), new Vector(980, 980), new Vector(980, 10), new Vector(10, 10)]],
+    polygons: [[new Vector(10, 10), new Vector(10, 680), new Vector(980, 680), new Vector(980, 10), new Vector(10, 10)]],
+    checkpoints: [],
     points: [],
 
     lastResetTime: null,
@@ -74,6 +20,7 @@ let input = new Array(255);
 window.onload = () => {
     let canvas = document.getElementById("area");
     let context = canvas.getContext("2d");
+
     canvas.addEventListener("mousemove", (event) => {
         world.mouse.x = event.clientX;
         world.mouse.y = event.clientY;
@@ -93,6 +40,10 @@ window.onload = () => {
             world.polygons.push(world.points);
             world.points = [];
         }
+
+        if (event.keyCode == enums.keyboard.KEY_C + 32) {
+            world.checkpoints.push(new Checkpoint(new Vector(world.mouse.x, world.mouse.y)));
+        }
     }, 1);
 
     let resetButton = document.getElementById("reset-button");
@@ -105,20 +56,32 @@ window.onload = () => {
 };
 
 function init() {
-    world.tanks = [];
-    world.geneticModel = new Genetic(15);
+    world.geneticModel = new Genetic(30);
+    reset();
+
     for (let i = 0; i < world.geneticModel.populationSize; i++) {
-        let params = randomParameters();
-        world.geneticModel.addIndividual(new Individual(params))
-        world.tanks.push(new Tank(new Vector(200, 150)));
+        let params = randomParameters(16);
+        world.geneticModel.addIndividual(new Individual(params));
     }
-    world.lastResetTime = Date.now();
 }
 
 function reset() {
+    const elitism = parseInt(document.getElementById("elitism").value);
+    world.geneticModel.elitism = elitism;
+
+    const mutationRate = parseFloat(document.getElementById("mutation-rate").value);
+    world.geneticModel.mutationRate = mutationRate;
+
     world.tanks = [];
     for (let i = 0; i < world.geneticModel.populationSize; i++) {
-        world.tanks.push(new Tank(new Vector(200, 150)));
+        let tank = new Tank(new Vector(200, 150));
+        
+        for (let j = 0; j < world.checkpoints.length; j++) {
+            let checkpoint = world.checkpoints[j];
+            tank.checkpoints.push(new Checkpoint(checkpoint.position));
+        }
+
+        world.tanks.push(tank);
     }
     world.lastResetTime = Date.now();
 }
@@ -176,12 +139,12 @@ function updateInput() {
 }
 
 function update(ctx) {
+    updateHTML();
     updateInput();
 
     let areAllStopped = world.tanks.every((tank) => {
         return tank.stopped;
     });
-    
     
     if (world.AI && (world.lastResetTime !== null || areAllStopped)) {
         if (Date.now() - world.lastResetTime >= world.timeBetweenSimulations || areAllStopped) {
@@ -194,15 +157,23 @@ function update(ctx) {
         }
     }
 
-    
     for (let i = 0; i < world.geneticModel.populationSize; i++) {
         let tank = world.tanks[i];
+
+        world.geneticModel.individuals[i].fitness = tank.totalDistance;
+        for (let j = 0; j < tank.checkpoints.length; j++) {
+            if (tank.checkpoints[j].checked) {
+                world.geneticModel.individuals[i].fitness += (j + 1) * 500;
+            }
+        }
+
         if (tank.stopped) {
             continue;
         }
 
         tank.center = new Vector(tank.position.x + tank.width/2, tank.position.y + tank.height/2);
         updateSensor(tank, tank.sensors.frontLeft);
+        updateSensor(tank, tank.sensors.frontRight);
         updateSensor(tank, tank.sensors.leftSide);
         updateSensor(tank, tank.sensors.rightSide);
 
@@ -229,14 +200,16 @@ function update(ctx) {
 
         if (world.AI) {
             moveLimit(tank);
+            checkpointCheck(tank);
         }
     }
 
     draw(ctx);
 
+    let updateSpeed = parseInt(document.getElementById("update-speed").value);
     setTimeout(function() {
         update(ctx);
-    }, 1000/60);
+    }, 1000/updateSpeed);
 }
 
 function tankToPolygonCollision(tank) {
@@ -271,5 +244,17 @@ function tankToPolygonCollision(tank) {
                 return true;
             }
         }
+    }
+}
+
+function updateHTML() {
+    let content = document.getElementById("simulation-time");
+    content.innerHTML = `SIMULATION TIME LEFT: ${(world.timeBetweenSimulations - (Date.now() - world.lastResetTime)) / 1000}`;
+
+    let info = document.getElementById("info-content");
+    info.innerHTML = "";
+    for (let i = 0; i < world.geneticModel.populationSize; i++) {
+        let individual = world.geneticModel.individuals[i];
+        info.innerHTML += `<div>TANK ${i}: ${Math.ceil(individual.fitness)}</div>`;
     }
 }

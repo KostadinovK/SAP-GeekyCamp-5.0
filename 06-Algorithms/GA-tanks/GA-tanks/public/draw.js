@@ -19,6 +19,7 @@ function drawSensor(ctx, sensor) {
     ctx.fill();
 
     if (sensor.direction) {
+        ctx.strokeStyle = "#990099";
         ctx.beginPath();
         ctx.moveTo(sensor.position.x, sensor.position.y);
         let scaledDir;
@@ -32,9 +33,25 @@ function drawSensor(ctx, sensor) {
     }
 }
 
+function drawCheckpoint(ctx, checkpoint) {
+    ctx.fillStyle = "#f4d341";
+    ctx.save();
+    ctx.beginPath();
+    ctx.globalAlpha = 0.5;
+    ctx.arc(checkpoint.position.x, checkpoint.position.y, checkpoint.radius, 0, Math.PI * 2, 0);
+    ctx.fill();
+    ctx.restore();
+}
+
 
 function draw(ctx) {
     ctx.clearRect(0, 0, 1000, 1000);
+
+    for (let i = 0; i < world.checkpoints.length; i++) {
+        let checkpoint = world.checkpoints[i];
+
+        drawCheckpoint(ctx, checkpoint);
+    }
 
     for (let i = 0; i < world.geneticModel.populationSize; i++) {
         let tank = world.tanks[i];
@@ -45,7 +62,7 @@ function draw(ctx) {
         ctx.translate(-tank.position.x - tank.width/2, -tank.position.y - tank.height / 2);
     
         ctx.beginPath();
-        ctx.fillStyle = "green";
+        ctx.fillStyle = tank.color;
 
         if (tank.stopped) {
             ctx.fillStyle = "red";
@@ -55,9 +72,12 @@ function draw(ctx) {
     
         ctx.restore();
 
-        drawSensor(ctx, tank.sensors.frontLeft);
-        drawSensor(ctx, tank.sensors.leftSide);
-        drawSensor(ctx, tank.sensors.rightSide);
+        if (!tank.stopped) {
+            drawSensor(ctx, tank.sensors.frontLeft);
+            drawSensor(ctx, tank.sensors.frontRight);
+            drawSensor(ctx, tank.sensors.leftSide);
+            drawSensor(ctx, tank.sensors.rightSide);
+        }
     }
 
 
